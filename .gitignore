@@ -1,3 +1,4 @@
 out/
 .idea/
 *.beam
+.DS_Store
