@@ -2,13 +2,13 @@
 %%% Description : Database API for customer DB
 -module(db).
 
--export([create_table/0, close_table/0, add_user/3, delete_user/1]).
+-export([create_table/0, clean_up/0, add_user/3, delete_user/1]).
 -export([get_user_pid/1, get_username/1]).
 
 create_table() ->
   ets:new(db, [named_table, private]).
 
-close_table() ->
+clean_up() ->
   ets:delete(db).
 
 add_user(RefId, Pid, UserName) ->

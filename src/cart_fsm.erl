@@ -7,7 +7,8 @@
 -record(billing_info, {address = null, credit_card = null}).
 -record(transaction, {id = null, total = null}).
 
-init() -> shopping(0, []).
+init() ->
+  shopping(0, []).
 
 shopping(Total, Cart) ->
   receive
@@ -92,7 +93,7 @@ delivery(Transaction) ->
     {delivered, From} ->          % DELIVERY SUCCESS -> TERMINATE
       From ! ok
 
-  after 3600000 ->                % TIMEOUT -> TERMINATE
+  after 10000 ->                % TIMEOUT -> TERMINATE
     erlang:error(timeout)
 
   end.

@@ -2,45 +2,58 @@
 -behaviour(gen_server).
 
 -export([start/0, start_link/1, add/2, remove/2, checkout/1]).
--export([address/2, credit_card/3, delivered/1, cancel/1, show/1]).
+-export([address/2, credit_card/3, delivered/1, cancel/1, show/1, stop/0]).
 
--export([handle_call/3]).
--export([init/1]).
+-export([init/1, handle_call/3, handle_info/2, terminate/2]).
+
+-define(SERVER, cart_fsm).
+-define(MENU_FILE, "menu.txt").
 
 start() ->
-  {ok, [Menu|_]} = file:consult("menu.txt"),
-  gen_server:start({local, ?MODULE}, ?MODULE, [Menu], []).
+  {ok, [Menu|_]} = file:consult(?MENU_FILE),
+  gen_server:start_link({local, ?SERVER}, ?MODULE, [Menu], []).
 
 start_link(UserName) ->
-  gen_server:call(?MODULE, {start_link, UserName}).
+  gen_server:call(?SERVER, {start_link, UserName}).
 
 add(ReferenceId, Item) ->
-  gen_server:call(?MODULE, {add, ReferenceId, Item}).
+  gen_server:call(?SERVER, {add, ReferenceId, Item}).
 
 remove(ReferenceId, Item) ->
-  gen_server:call(?MODULE, {remove, ReferenceId, Item}).
+  gen_server:call(?SERVER, {remove, ReferenceId, Item}).
 
 checkout(ReferenceId) ->
-  gen_server:call(?MODULE, {checkout, ReferenceId}).
+  gen_server:call(?SERVER, {checkout, ReferenceId}).
 
 address(ReferenceId, Address) ->
-  gen_server:call(?MODULE, {address, ReferenceId, Address}).
+  gen_server:call(?SERVER, {address, ReferenceId, Address}).
 
 credit_card(ReferenceId, CCNumber, {ExpMo, ExpYr}) ->
-  gen_server:call(?MODULE, {credit_card, ReferenceId, CCNumber, {ExpMo, ExpYr}}).
+  gen_server:call(?SERVER, {credit_card, ReferenceId, CCNumber, {ExpMo, ExpYr}}).
 
 delivered(ReferenceId) ->
-  gen_server:call(?MODULE, {delivered, ReferenceId}).
+  gen_server:call(?SERVER, {delivered, ReferenceId}).
 
 cancel(ReferenceId) ->
-  gen_server:call(?MODULE, {cancel, ReferenceId}).
+  gen_server:call(?SERVER, {cancel, ReferenceId}).
 
 show(ReferenceId) ->
-  gen_server:call(?MODULE, {show, ReferenceId}).
+  gen_server:call(?SERVER, {show, ReferenceId}).
 
 init([Menu]) ->
+  process_flag(trap_exit, true),
   db:create_table(),
   {ok, [Menu]}.
+
+% TODO CHECK IF WE NEED TO KILL THE CHILD PROCESSES?
+stop() ->
+  db:clean_up(),
+  ok.
+
+terminate(Reason, _) ->
+  io:format("Terminating Server with ~p~n", [Reason]),
+  db:clean_up(),
+  ok.
 
 handle_call({start_link, UserName}, _From, [Menu]) ->
   ReferenceId = make_ref(),
@@ -139,4 +152,9 @@ handle_call({show, ReferenceId}, _From, [Menu]) ->
     {error, Error} ->
       {reply, {error, Error}, [Menu]}
   end.
+
+handle_info({'EXIT', Pid, Reason}, LoopData) ->
+  io:format("~s~w~s~n~p~n",
+    ["Process ", Pid, " terminated with:", Reason]),
+  {noreply, LoopData}.
 
