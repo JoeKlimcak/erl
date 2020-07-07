@@ -1,5 +1,5 @@
 % FINITE STATE MACHINE
--module(cart_fsm).
+-module(cart_server).
 
 -export([shopping/2, payment/3, delivery/1]).
 -export([init/0, transaction/2, is_valid/1]).
@@ -93,7 +93,7 @@ delivery(Transaction) ->
     {delivered, From} ->          % DELIVERY SUCCESS -> TERMINATE
       From ! ok
 
-  after 10000 ->                % TIMEOUT -> TERMINATE
+  after 3600000 ->                % TIMEOUT -> TERMINATE
     erlang:error(timeout)
 
   end.

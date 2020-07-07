@@ -6,7 +6,7 @@
 -export([get_user_pid/1, get_username/1]).
 
 create_table() ->
-  ets:new(db, [named_table, private]).
+  ets:new(db, [named_table, public]).
 
 clean_up() ->
   ets:delete(db).

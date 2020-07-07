@@ -4,9 +4,9 @@
 -export([start/0, start_link/1, add/2, remove/2, checkout/1]).
 -export([address/2, credit_card/3, delivered/1, cancel/1, show/1, stop/0]).
 
--export([init/1, handle_call/3, handle_info/2, terminate/2]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
 
--define(SERVER, cart_fsm).
+-define(SERVER, cart_server).
 -define(MENU_FILE, "menu.txt").
 
 start() ->
@@ -40,15 +40,13 @@ cancel(ReferenceId) ->
 show(ReferenceId) ->
   gen_server:call(?SERVER, {show, ReferenceId}).
 
+stop() ->
+  gen_server:cast(?SERVER, stop).
+
 init([Menu]) ->
   process_flag(trap_exit, true),
   db:create_table(),
   {ok, [Menu]}.
-
-% TODO CHECK IF WE NEED TO KILL THE CHILD PROCESSES?
-stop() ->
-  db:clean_up(),
-  ok.
 
 terminate(Reason, _) ->
   io:format("Terminating Server with ~p~n", [Reason]),
@@ -57,7 +55,7 @@ terminate(Reason, _) ->
 
 handle_call({start_link, UserName}, _From, [Menu]) ->
   ReferenceId = make_ref(),
-  Pid = spawn_link(cart_fsm, init, []),
+  Pid = spawn_link(cart_server, init, []),
   db:add_user(ReferenceId, Pid, UserName),
   {reply, {ok, ReferenceId}, [Menu]};
 
@@ -152,6 +150,9 @@ handle_call({show, ReferenceId}, _From, [Menu]) ->
     {error, Error} ->
       {reply, {error, Error}, [Menu]}
   end.
+
+handle_cast(stop, State) ->
+  {stop, shutdown, State}.
 
 handle_info({'EXIT', Pid, Reason}, LoopData) ->
   io:format("~s~w~s~n~p~n",
