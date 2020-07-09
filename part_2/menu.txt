@@ -1,7 +1,0 @@
-[{pizza, cheese, "Margherita", 5.0},
- {pizza, mushrooms, "Mushrooms and Cheese", 5.5},
- {pizza, ham, "Ham and Cheese", 6.0},
- {pasta, meat, "Bolognese", 8.0},
- {pasta, seafood, "Seafood", 12.0},
- {drink, peroni, "Peroni Beer", 3.0},
- {drink, water," San Pellegrino", 2.0}].

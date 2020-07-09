@@ -1,17 +1,23 @@
 -module(cc).
 
-%% API
 -export([is_valid/3, transaction/4, cancel/1]).
 
 is_valid(Address, CCNumber, Expiry) ->
-  %false.
-  true.
+  case rand:uniform() > 0.5 of
+    true -> true;
+    false -> false
+  end.
 
 transaction(Address, CCNumber, Expiry, Price) ->
-  % {error, invalid_card}
-  %{error, funds}.
-  {ok, 123456789}.
+  case rand:uniform() > 0.5 of
+    true -> {ok, 123456789};
+    false -> {error, invalid_card} %| {error, funds}
+  end.
 
 cancel(TrxId) ->
-  % {error, unknown}
-  ok.
+  case rand:uniform() > 0.5 of
+    true ->
+      % Credit the user
+      ok;
+    false -> {error, unknown}
+  end.
